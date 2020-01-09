@@ -54,8 +54,8 @@ def process(params):
 def test_rouge(temp_dir, cand, ref):
     candidates = [line.strip() for line in open(cand, encoding='utf-8')]
     references = [line.strip() for line in open(ref, encoding='utf-8')]
-    print(len(candidates))
-    print(len(references))
+    print('len candidates ',len(candidates))
+    print('len references ',len(references))
     assert len(candidates) == len(references)
 
     cnt = len(candidates)
@@ -66,16 +66,19 @@ def test_rouge(temp_dir, cand, ref):
         os.mkdir(tmp_dir + "/candidate")
         os.mkdir(tmp_dir + "/reference")
     try:
-
+        non_references = True
         for i in range(cnt):
             if len(references[i]) < 1:
                 continue
+            non_references = False
             with open(tmp_dir + "/candidate/cand.{}.txt".format(i), "w",
                       encoding="utf-8") as f:
                 f.write(candidates[i])
             with open(tmp_dir + "/reference/ref.{}.txt".format(i), "w",
                       encoding="utf-8") as f:
                 f.write(references[i])
+        if non_references:
+            return {}         
         r = pyrouge.Rouge155(temp_dir=temp_dir)
         r.model_dir = tmp_dir + "/reference/"
         r.system_dir = tmp_dir + "/candidate/"

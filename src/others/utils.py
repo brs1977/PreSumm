@@ -78,7 +78,8 @@ def test_rouge(temp_dir, cand, ref):
                       encoding="utf-8") as f:
                 f.write(references[i])
         if non_references:
-            return {}         
+            return {'rouge_1_f_score':0,'rouge_2_f_score':0,'rouge_l_f_score':0,'rouge_1_recall':0,'rouge_2_recall':0,'rouge_l_recall':0}   
+         
         r = pyrouge.Rouge155(temp_dir=temp_dir)
         r.model_dir = tmp_dir + "/reference/"
         r.system_dir = tmp_dir + "/candidate/"

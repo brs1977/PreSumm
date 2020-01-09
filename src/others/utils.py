@@ -86,8 +86,8 @@ def test_rouge(temp_dir, cand, ref):
         results_dict = r.output_to_dict(rouge_results)
     finally:
         pass
-        if os.path.isdir(tmp_dir):
-            shutil.rmtree(tmp_dir)
+#        if os.path.isdir(tmp_dir):
+#            shutil.rmtree(tmp_dir)
     return results_dict
 
 

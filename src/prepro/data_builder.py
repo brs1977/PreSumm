@@ -330,7 +330,7 @@ def _format_to_bert(params):
 
 def format_to_lines(args):
     train_files, valid_files, test_files = [], [], []
-    for f in glob.glob(pjoin(raw_path, '*.json')):
+    for f in glob.glob(pjoin(args.raw_path, '*.json')):
       fn = f.split('/')[-1].split('.')[0]
       if fn.startswith('train'):
         train_files.append(f)

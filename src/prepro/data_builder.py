@@ -30,7 +30,6 @@ def recover_from_corenlp(s):
     s = re.sub(r'\'\' {\w}', '\'\'\g<1>', s)
 
 
-
 def load_json(p, lower):
     source = []
     tgt = []
@@ -41,10 +40,10 @@ def load_json(p, lower):
             tokens = [t.lower() for t in tokens]
         if (tokens[0] == '@highlight'):
             flag = True
-            tgt.append([])
             continue
         if (flag):
-            tgt[-1].extend(tokens)
+            tgt.append(tokens)
+#             tgt[-1].extend(tokens)
         else:
             source.append(tokens)
 

@@ -222,12 +222,12 @@ class BertData():
         for l in oracle_ids:
             labels[l] = 1
 
-        idxs = [i for i, s in enumerate(src) if (len(s) > self.args.min_src_ntokens)]
+        idxs = [i for i, s in enumerate(src) if (len(s) > self.args.min_src_ntokens_per_sent)]
 
-        src = [src[i][:self.args.max_src_ntokens] for i in idxs]
+        src = [src[i][:self.args.max_src_ntokens_per_sent] for i in idxs]
         labels = [labels[i] for i in idxs]
-        src = src[:self.args.max_nsents]
-        labels = labels[:self.args.max_nsents]
+        src = src[:self.args.max_src_nsents]
+        labels = labels[:self.args.max_src_nsents]
 
         if ((not is_test) and len(src) < self.args.min_src_nsents):
             return None

@@ -211,7 +211,7 @@ class BertData():
         self.cls_vid = self.tokenizer.vocab['[CLS]']
         self.pad_vid = self.tokenizer.vocab['[PAD]']
 
-    def preprocess(self, src, tgt, oracle_ids, is_test = False):
+    def preprocess(self, src, tgt, oracle_ids, use_bert_basic_tokenizer = False, is_test = False):
 
         if ((not is_test) and len(src) == 0):
             return None
@@ -254,9 +254,18 @@ class BertData():
         cls_ids = [i for i, t in enumerate(src_subtoken_idxs) if t == self.cls_vid]
         labels = labels[:len(cls_ids)]
 
+        tgt_subtokens_str = '[unused0] ' + ' [unused2] '.join(
+            [' '.join(self.tokenizer.tokenize(' '.join(tt), use_bert_basic_tokenizer=use_bert_basic_tokenizer)) for tt in tgt]) + ' [unused1]'
+        tgt_subtoken = tgt_subtokens_str.split()[:self.args.max_tgt_ntokens]
+        if ((not is_test) and len(tgt_subtoken) < self.args.min_tgt_ntokens):
+            return None
+
+        tgt_subtoken_idxs = self.tokenizer.convert_tokens_to_ids(tgt_subtoken)
+        
+        
         tgt_txt = '<q>'.join([' '.join(tt) for tt in tgt])
         src_txt = [original_src_txt[i] for i in idxs]
-        return src_subtoken_idxs, labels, segments_ids, cls_ids, src_txt, tgt_txt
+        return src_subtoken_idxs, labels, tgt_subtokens_str, segments_ids, cls_ids, src_txt, tgt_txt
     
 class BertData1():
     def __init__(self, args):
@@ -371,6 +380,7 @@ def _format_to_bert(params):
         if (b_data is None):
             continue
         src_subtoken_idxs, sent_labels, tgt_subtoken_idxs, segments_ids, cls_ids, src_txt, tgt_txt = b_data
+        
         b_data_dict = {"src": src_subtoken_idxs, "tgt": tgt_subtoken_idxs,
                        "src_sent_labels": sent_labels, "segs": segments_ids, 'clss': cls_ids,
                        'src_txt': src_txt, "tgt_txt": tgt_txt}

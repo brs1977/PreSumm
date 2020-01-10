@@ -202,7 +202,7 @@ def hashhex(s):
     h.update(s.encode('utf-8'))
     return h.hexdigest()
 
-class BertData():
+class BertData1():
     def __init__(self, args):
         self.args = args
 #         self.tokenizer = BertTokenizer.from_pretrained( self.args.vocab_file, do_lower_case=True)
@@ -267,7 +267,7 @@ class BertData():
         src_txt = [original_src_txt[i] for i in idxs]
         return src_subtoken_idxs, labels, tgt_subtokens_str, segments_ids, cls_ids, src_txt, tgt_txt
     
-class BertData1():
+class BertData():
     def __init__(self, args):
         self.args = args
         self.tokenizer = BertTokenizer.from_pretrained('bert-base-uncased', do_lower_case=True)

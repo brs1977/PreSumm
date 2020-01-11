@@ -153,16 +153,17 @@ def validate_abs(args, device_id):
                     step = int(cp.split('.')[-2].split('_')[-1])
                     validate(args, device_id, cp, step)
                     test_abs(args, device_id, cp, step)
-
-            cp_files = sorted(glob.glob(os.path.join(args.model_path, 'model_step_*.pt')))
-            cp_files.sort(key=os.path.getmtime)
-            if (cp_files):
-                cp = cp_files[-1]
-                time_of_cp = os.path.getmtime(cp)
-                if (time_of_cp > timestep):
-                    continue
-            else:
-                time.sleep(300)
+                    break
+                    
+#             cp_files = sorted(glob.glob(os.path.join(args.model_path, 'model_step_*.pt')))
+#             cp_files.sort(key=os.path.getmtime)
+#             if (cp_files):
+#                 cp = cp_files[-1]
+#                 time_of_cp = os.path.getmtime(cp)
+#                 if (time_of_cp > timestep):
+#                     continue
+#             else:
+#                 time.sleep(300)
 
 
 def validate(args, device_id, pt, step):

@@ -113,7 +113,7 @@ def get_generator(vocab_size, dec_hidden_size, device):
     return generator
 
 class Bert(nn.Module):
-    def __init__(self, large, temp_dir, finetune=False, bert_model):
+    def __init__(self, large, temp_dir, bert_model, finetune=False):
         super(Bert, self).__init__()
         if(large):
             self.model = BertModel.from_pretrained(bert_model, cache_dir=temp_dir)
@@ -180,7 +180,7 @@ class AbsSummarizer(nn.Module):
         super(AbsSummarizer, self).__init__()
         self.args = args
         self.device = device
-        self.bert = Bert(args.large, args.temp_dir, args.finetune_bert, args.bert_model)
+        self.bert = Bert(args.large, args.temp_dir, args.bert_model, args.finetune_bert)
 
         if bert_from_extractive is not None:
             self.bert.model.load_state_dict(

@@ -9,6 +9,7 @@ from models.reporter import ReportMgr, Statistics
 from others.logging import logger
 from others.utils import test_rouge, rouge_results_to_str
 
+from collections import deque
 
 def _tally_parameters(model):
     n_params = sum([p.nelement() for p in model.parameters()])
@@ -98,6 +99,10 @@ class Trainer(object):
         self.report_manager = report_manager
 
         self.loss = loss
+
+        self.auto_clear_checkpoints = auto_clear_checkpoints
+        self._checkpoint_files = deque()
+
 
         assert grad_accum_count > 0
         # Set model in training mode.
@@ -339,8 +344,14 @@ class Trainer(object):
         checkpoint_path = os.path.join(self.args.model_path, 'model_step_%d.pt' % step)
         logger.info("Saving checkpoint %s" % checkpoint_path)
         # checkpoint_path = '%s_step_%d.pt' % (FLAGS.model_path, step)
-        if (not os.path.exists(checkpoint_path)):
-            torch.save(checkpoint, checkpoint_path)
+        if (not os.path.exists(checkpoint_path)):            
+            torch.save(checkpoint, checkpoint_path)            
+            #auto clear checkpoints
+            if self.auto_clear_checkpoints:
+                if len(self._checkpoint_files)>0:
+                    self._remove_old_checkpoint(self._checkpoint_files.popleft())
+            self._checkpoint_files.append(checkpoint_path)
+
             return checkpoint, checkpoint_path
 
     def _start_report_manager(self, start_time=None):

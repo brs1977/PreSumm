@@ -87,7 +87,7 @@ class Trainer(object):
 
     def __init__(self,  args, model,  optims, loss,
                   grad_accum_count=1, n_gpu=1, gpu_rank=1,
-                  report_manager=None):
+                  report_manager=None, auto_clear_checkpoints=True):
         # Basic attributes.
         self.args = args
         self.save_checkpoint_steps = args.save_checkpoint_steps
@@ -326,6 +326,12 @@ class Trainer(object):
         self._report_step(0, step, valid_stats=stats)
 
         return stats
+
+    def _remove_old_checkpoint(self, path):
+        try:
+            os.remove(path)
+        except:
+            logger.info("Error while deleting file %s" % path)
 
     def _save(self, step):
         real_model = self.model

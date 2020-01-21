@@ -100,7 +100,7 @@ class Translator(object):
                 len(translation_batch["predictions"]))
         batch_size = batch.batch_size
 
-        preds, pred_score, gold_score, tgt_str, src =  translation_batch["predictions"],translation_batch["scores"],translation_batch["gold_score"],batch.tgt_str, batch.src
+        preds, pred_score, gold_score, tgt_str, src =  translation_batch["predictions"],translation_batch["scores"],translation_batch["gold_score"],batch.tgt_txt, batch.src
 
         translations = []
         for b in range(batch_size):
@@ -166,8 +166,6 @@ class Translator(object):
                             else:
                                 gap = can_gap
                                 _pred_str = can_pred_str
-
-
 
                         # pred_str = ' '.join(pred_str.split()[:len(gold_str.split())])
                     # self.raw_can_out_file.write(' '.join(pred).strip() + '\n')

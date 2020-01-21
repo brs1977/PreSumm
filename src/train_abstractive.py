@@ -116,44 +116,54 @@ class ErrorHandler(object):
         msg += original_trace
         raise Exception(msg)
 
+def predict_abs(args, device_id):
+    cp = args.test_from
+    predict(args, device_id, cp)
 
-def validate_abs(args, device_id):
-    timestep = 0
-    if (args.test_all):
-        cp_files = sorted(glob.glob(os.path.join(args.model_path, 'model_step_*.pt')))
-        cp_files.sort(key=os.path.getmtime)
-        xent_lst = []
-        for i, cp in enumerate(cp_files):
-            step = int(cp.split('.')[-2].split('_')[-1])
-            if (args.test_start_from != -1 and step < args.test_start_from):
-                xent_lst.append((1e6, cp))
-                continue
-            xent = validate(args, device_id, cp, step)
-            xent_lst.append((xent, cp))
-            max_step = xent_lst.index(min(xent_lst))
-            if (i - max_step > 10):
-                break
-        xent_lst = sorted(xent_lst, key=lambda x: x[0])[:5]
-        logger.info('PPL %s' % str(xent_lst))
-        for xent, cp in xent_lst:
-            step = int(cp.split('.')[-2].split('_')[-1])
-            test_abs(args, device_id, cp, step)
-    else:
-        while (True):
-            cp_files = sorted(glob.glob(os.path.join(args.model_path, 'model_step_*.pt')))
-            cp_files.sort(key=os.path.getmtime)
-            if (cp_files):
-                cp = cp_files[-1]
-                time_of_cp = os.path.getmtime(cp)
-                if (not os.path.getsize(cp) > 0):
-                    time.sleep(60)
-                    continue
-                if (time_of_cp > timestep):
-                    timestep = time_of_cp
-                    step = int(cp.split('.')[-2].split('_')[-1])
-                    validate(args, device_id, cp, step)
-                    test_abs(args, device_id, cp, step)
-                    break
+
+def validate_abs(args, device_id):    
+    cp = args.test_from
+    step = int(cp.split('.')[-2].split('_')[-1])
+    validate(args, device_id, cp, step)
+    test_abs(args, device_id, cp, step)
+
+    
+    # timestep = 0
+    # if (args.test_all):
+    #     cp_files = sorted(glob.glob(os.path.join(args.model_path, 'model_step_*.pt')))
+    #     cp_files.sort(key=os.path.getmtime)
+    #     xent_lst = []
+    #     for i, cp in enumerate(cp_files):
+    #         step = int(cp.split('.')[-2].split('_')[-1])
+    #         if (args.test_start_from != -1 and step < args.test_start_from):
+    #             xent_lst.append((1e6, cp))
+    #             continue
+    #         xent = validate(args, device_id, cp, step)
+    #         xent_lst.append((xent, cp))
+    #         max_step = xent_lst.index(min(xent_lst))
+    #         if (i - max_step > 10):
+    #             break
+    #     xent_lst = sorted(xent_lst, key=lambda x: x[0])[:5]
+    #     logger.info('PPL %s' % str(xent_lst))
+    #     for xent, cp in xent_lst:
+    #         step = int(cp.split('.')[-2].split('_')[-1])
+    #         test_abs(args, device_id, cp, step)
+    # else:
+    #     while (True):
+    #         cp_files = sorted(glob.glob(os.path.join(args.model_path, 'model_step_*.pt')))
+    #         cp_files.sort(key=os.path.getmtime)
+    #         if (cp_files):
+    #             cp = cp_files[-1]
+    #             time_of_cp = os.path.getmtime(cp)
+    #             if (not os.path.getsize(cp) > 0):
+    #                 time.sleep(60)
+    #                 continue
+    #             if (time_of_cp > timestep):
+    #                 timestep = time_of_cp
+    #                 step = int(cp.split('.')[-2].split('_')[-1])
+    #                 validate(args, device_id, cp, step)
+    #                 test_abs(args, device_id, cp, step)
+    #                 break
                     
 #             cp_files = sorted(glob.glob(os.path.join(args.model_path, 'model_step_*.pt')))
 #             cp_files.sort(key=os.path.getmtime)
@@ -216,6 +226,34 @@ def test_abs(args, device_id, pt, step):
     model = AbsSummarizer(args, device, checkpoint)
     model.eval()
 
+    test_iter = data_loader.Dataloader(args, load_dataset(args, 'valid', shuffle=False),
+                                       args.test_batch_size, device,
+                                       shuffle=False, is_test=False)
+    tokenizer = BertTokenizer.from_pretrained('bert-base-uncased', do_lower_case=True, cache_dir=args.temp_dir)
+    symbols = {'BOS': tokenizer.vocab['[unused0]'], 'EOS': tokenizer.vocab['[unused1]'],
+               'PAD': tokenizer.vocab['[PAD]'], 'EOQ': tokenizer.vocab['[unused2]']}
+    predictor = build_predictor(args, tokenizer, symbols, model, logger)
+    predictor.translate(test_iter, step)
+
+
+def predict(args, device_id, pt):
+    device = "cpu" if args.visible_gpus == '-1' else "cuda"
+    if (pt != ''):
+        test_from = pt
+    else:
+        test_from = args.test_from
+    logger.info('Loading checkpoint from %s' % test_from)
+
+    checkpoint = torch.load(test_from, map_location=lambda storage, loc: storage)
+    opt = vars(checkpoint['opt'])
+    for k in opt.keys():
+        if (k in model_flags):
+            setattr(args, k, opt[k])
+    print(args)
+
+    model = AbsSummarizer(args, device, checkpoint)
+    model.eval()
+
     test_iter = data_loader.Dataloader(args, load_dataset(args, 'test', shuffle=False),
                                        args.test_batch_size, device,
                                        shuffle=False, is_test=True)
@@ -223,8 +261,7 @@ def test_abs(args, device_id, pt, step):
     symbols = {'BOS': tokenizer.vocab['[unused0]'], 'EOS': tokenizer.vocab['[unused1]'],
                'PAD': tokenizer.vocab['[PAD]'], 'EOQ': tokenizer.vocab['[unused2]']}
     predictor = build_predictor(args, tokenizer, symbols, model, logger)
-    predictor.translate(test_iter, step)
-
+    predictor.translate(test_iter, step = -1) #no test rouge
 
 def test_text_abs(args, device_id, pt, step):
     device = "cpu" if args.visible_gpus == '-1' else "cuda"

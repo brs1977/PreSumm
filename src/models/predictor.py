@@ -100,7 +100,7 @@ class Translator(object):
                 len(translation_batch["predictions"]))
         batch_size = batch.batch_size
         #batch 'clss', 'mask_cls', 'mask_src', 'mask_tgt', 'segs', 'src', 'src_sent_labels', 'tgt'
-        preds, pred_score, gold_score, tgt_str, src =  translation_batch["predictions"],translation_batch["scores"],translation_batch["gold_score"],batch.tgt_txt, batch.src
+        preds, pred_score, gold_score, tgt_str, src =  translation_batch["predictions"],translation_batch["scores"],translation_batch["gold_score"],batch.tgt_str, batch.src
 
         translations = []
         for b in range(batch_size):

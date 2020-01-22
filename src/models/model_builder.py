@@ -61,7 +61,7 @@ def build_optim_bert(args, model, checkpoint):
         optim = Optimizer(
             args.optim, args.lr_bert, args.max_grad_norm,
             beta1=args.beta1, beta2=args.beta2,
-            decay_method='noam',
+            decay_method=args.decay_method, #'noam',
             warmup_steps=args.warmup_steps_bert)
 
     params = [(n, p) for n, p in list(model.named_parameters()) if n.startswith('bert.model')]
@@ -92,7 +92,7 @@ def build_optim_dec(args, model, checkpoint):
         optim = Optimizer(
             args.optim, args.lr_dec, args.max_grad_norm,
             beta1=args.beta1, beta2=args.beta2,
-            decay_method='noam',
+            decay_method=args.decay_method, #'noam',
             warmup_steps=args.warmup_steps_dec)
 
     params = [(n, p) for n, p in list(model.named_parameters()) if not n.startswith('bert.model')]

@@ -189,7 +189,7 @@ class Trainer(object):
         # Set model in validating mode.
         self.model.eval()
         stats = Statistics()
-
+        ct  = 0
         with torch.no_grad():
             for batch in valid_iter:
                 src = batch.src
@@ -204,6 +204,10 @@ class Trainer(object):
 
                 batch_stats = self.loss.monolithic_compute_loss(batch, outputs)
                 stats.update(batch_stats)
+                if ct % self.args.report_every == 0:
+                    logger.info('Validate at step %d \n' % (ct))
+                ct += 1
+
             self._report_step(0, step, valid_stats=stats)
             return stats
 

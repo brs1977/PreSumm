@@ -174,7 +174,7 @@ class Translator(object):
                     self.gold_out_file.write(gold_str + '\n')
                     self.src_out_file.write(src.strip() + '\n')
                     ct += 1
-                    if ct % 500 :
+                    if ct % self.args.report_every == 0:
                         self.logger.info('Translate at step %d \n' % (ct))
 
                 self.can_out_file.flush()

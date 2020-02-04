@@ -125,7 +125,7 @@ def validate_abs(args, device_id):
     cp = args.test_from
     step = int(cp.split('.')[-2].split('_')[-1])
     validate(args, device_id, cp, step)
-    test_abs(args, device_id, cp, step)
+    # test_abs(args, device_id, cp, step)
 
     
     # timestep = 0
